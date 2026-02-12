@@ -20,13 +20,16 @@ The current workflow performs **data loading, preprocessing, and exploratory dat
 ## 📂 Dataset Details
 
 **Dataset:** DBpedia Ontology Classification  
-**Source:** Structured Wikipedia entries (DBpedia project)  
+**Source:** https://www.google.com/url?q=https%3A%2F%2Fdrive.google.com%2Fuc%3Fexport%3Ddownload%26id%3D0Bz8a_Dbh9QhbQ2Vic1kxMmZZQ1k
 **Task:** Multi-class text classification  
 **Classes:** 14 categories  
 **Size:** ~560,000 training samples, ~70,000 test samples  
 **Language:** English  
 
-Each sample consists of a title and short description, which are combined during preprocessing.
+The DBpedia Ontology Classification dataset is constructed from structured Wikipedia entries. 
+Each sample contains a title and a short abstract describing an entity, and the task is to classify the text into one of 14 ontology-based categories such as Company, Artist, Athlete, Film, or Natural Place.
+
+The dataset represents real-world encyclopedic knowledge and is commonly used as a benchmark for large-scale multi-class text classification tasks.
 
 ### Key Characteristics
 - Numerically balanced class distribution  

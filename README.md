@@ -30,9 +30,9 @@ source venv/bin/activate  # Linux/Mac
 venv\Scripts\activate     # Windows
 
 # Install dependencies
-pip install -r requirements.txt
+pip install -r requirements.txt ```
 
-🚀 Future Scope & Next Steps
+#🚀 Future Scope & Next Steps
 
 Transformer Fine‑Tuning: Train transformer models (BERT, RoBERTa, DistilBERT) on this dataset for superior performance over traditional models.
 

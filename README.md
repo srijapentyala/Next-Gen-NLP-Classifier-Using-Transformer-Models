@@ -30,19 +30,14 @@ source venv/bin/activate  # Linux/Mac
 venv\Scripts\activate     # Windows
 
 # Install dependencies
-pip install -r requirements.txt
+pip install -r requirements.txt `\`\`\``
 
+## 🚀 Future Scope & Next Steps
 
-#🚀 Future Scope & Next Steps
+- **Transformer Fine-Tuning:** Train transformer models (BERT, RoBERTa, DistilBERT) on this dataset for superior performance compared to traditional models.  
+- **Hyperparameter Tuning:** Optimize learning rate, batch size, and number of epochs for best results.  
+- **Long Text Strategies:** Implement truncation, sliding window, or hierarchical approaches for texts longer than model token limits.  
+- **Evaluation Metrics:** Analyze model performance using accuracy, precision, recall, F1-score, and confusion matrices.  
+- **Deployment:** Package the trained model as a REST API or web application for real-time inference.  
+- **Benchmarking:** Compare performance against baseline TF-IDF + SVM models to quantify improvements.
 
-Transformer Fine‑Tuning: Train transformer models (BERT, RoBERTa, DistilBERT) on this dataset for superior performance over traditional models.
-
-Hyperparameter Tuning: Optimize learning rate, batch size, and epochs for best performance.
-
-Long Text Strategies: Implement truncation or sliding window approaches for texts longer than model token limits.
-
-Evaluation Metrics: Analyze performance using accuracy, precision, recall, F1‑score, and confusion matrices.
-
-Deployment: Package the trained model as a REST API or web app for inference.
-
-Benchmarking: Compare performance against baseline TF‑IDF + SVM to quantify improvements.

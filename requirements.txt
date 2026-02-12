@@ -1,0 +1,20 @@
+# Core ML libraries
+transformers
+datasets
+evaluate
+torch
+
+# Data science libraries
+scikit-learn
+pandas
+matplotlib
+seaborn
+
+# Interpretability libraries
+lime
+shap
+
+# Utilities
+joblib
+numpy
+ipykernel

@@ -15,6 +15,24 @@ The current workflow performs **data loading, preprocessing, and exploratory dat
 - **Set up a scalable NLP pipeline** that can later be extended with transformer models for classification.
 
 ---
+---
+
+## 📂 Dataset Details
+
+**Dataset:** DBpedia Ontology Classification  
+**Source:** Structured Wikipedia entries (DBpedia project)  
+**Task:** Multi-class text classification  
+**Classes:** 14 categories  
+**Size:** ~560,000 training samples, ~70,000 test samples  
+**Language:** English  
+
+Each sample consists of a title and short description, which are combined during preprocessing.
+
+### Key Characteristics
+- Numerically balanced class distribution  
+- Moderate text length suitable for transformer models  
+- Public research dataset  
+
 
 ## 🛠️ Get Started
 

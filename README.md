@@ -79,74 +79,140 @@ Next-Gen-NLP-Classifier-Using-Transformer-Models/
 - **Train:** 560,000 articles | **Test:** 70,000 articles
 - **Classes (14):** Company, EducationalInstitution, Artist, Athlete, OfficeHolder, MeanOfTransportation, Building, NaturalPlace, Village, Animal, Plant, Album, WrittenWork, Film
 - **Perfectly balanced** — 40,000 train / 5,000 test samples per class
-- **Format:** CSV with columns `[label, title, content]`
+# Does Context Actually Matter for Text Classification?
+A focused, reproducible comparison of classical bag-of-words pipelines versus transformer-based fine-tuning on the DBpedia 14-class benchmark.
 
-**Preprocessing steps:**
-1. Combine `title` + `content` into a single `text` field
-2. Drop rows with missing or empty text
-3. Map numeric labels (1–14) to human-readable class names
-4. 80/20 stratified train/validation split for classical models
-5. Separate 8K stratified subsample for DistilBERT fine-tuning
+Student: Srija Pentyala
 
-The notebook auto-downloads the dataset from HuggingFace on first run — no manual download needed.
+Project video: https://www.youtube.com/watch?v=tJMxr0M0WzE&t=1s
+
+Dataset mirror (direct download): https://drive.usercontent.google.com/download?id=0Bz8a_Dbh9QhbQ2Vic1kxMmZZQ1k&export=download&authuser=1
 
 ---
 
-## 🚀 How to Reproduce
+## Start here
 
-This project was built and tested entirely in **Google Colab** with a T4 GPU.
+- Final notebook: `main_notebook.ipynb` — open this first (Colab recommended)
+- Checkpoint notebooks: `checkpoints/checkpoint_1.ipynb`, `checkpoints/checkpoint_2.ipynb`
 
-**Steps:**
+## Project summary
 
-1. Open [`main_notebook.ipynb`](main_notebook.ipynb) in [Google Colab](https://colab.research.google.com/)
-2. Go to **Runtime → Change runtime type → T4 GPU** (required for Stage 3 / DistilBERT)
-3. Run **all cells from top to bottom** — the notebook will:
-   - Auto-install dependencies
-   - Auto-download the DBpedia 14 dataset from HuggingFace
-   - Execute all three stages sequentially
-4. For Stages 1 & 2 (TF-IDF), CPU is sufficient. Stage 3 requires GPU.
+This project asks a single practical question: when and why does context (as provided by modern transformer models) matter for large-scale text classification? I evaluate three stages:
 
-**Install dependencies locally (optional):**
+- RQ1 — TF-IDF + Logistic Regression (classical baseline)
+- RQ2 — TF-IDF + Truncated SVD + Logistic Regression (compressed features)
+- RQ3 — Fine-tuned DistilBERT (contextual model), both on a small 8k subset and on the full dataset
+
+The deliverable is a curated, well-documented notebook (`main_notebook.ipynb`) that reproduces the experiments and contains the results, visualizations, and a short explainability section using LIME.
+
+## Research questions
+
+1. How far can TF-IDF + Logistic Regression go on DBpedia 14?  
+2. Does dimensionality reduction (SVD) help or hurt classical models?  
+3. Does a contextual model (DistilBERT) outperform TF-IDF, and if so, at what sample sizes?
+
+## Key results (short)
+
+- TF-IDF + Logistic Regression achieves strong accuracy on DBpedia (near 98% test accuracy).  
+- Truncated SVD (topic compression) reduces performance slightly.  
+- DistilBERT matches classical accuracy using a small labeled set (~8k samples), demonstrating sample-efficiency benefits of transfer learning.  
+
+See `main_notebook.ipynb` for detailed tables and per-class breakdowns.
+
+## Files and repository layout
+
+```
+Next-Gen-NLP-Classifier-Using-Transformer-Models/
+├── main_notebook.ipynb        # Curated final notebook (start here)
+├── requirements.txt           # Exported environment (from Colab)
+├── README.md                  # This file
+├── checkpoints/
+│   ├── checkpoint_1.ipynb
+│   └── checkpoint_2.ipynb
+├── dbpedia_csv/               # (optional) local data store
+├── scripts/                   # helper scripts (data download / preprocessing)
+├── assets/                    # figures and visual assets used in the notebook
+└── delete_checkpoint.sh       # helper script created during repo organization
+```
+
+## Data
+
+- Primary dataset: DBpedia 14-class ontology (560k train / 70k test).  
+- Official HuggingFace dataset: https://huggingface.co/datasets/dbpedia_14  
+- Direct mirror (provided): https://drive.usercontent.google.com/download?id=0Bz8a_Dbh9QhbQ2Vic1kxMmZZQ1k&export=download&authuser=1
+
+Preprocessing highlights (implemented in the notebooks):
+
+1. Combine title + content into a single `text` field.  
+2. Remove empty/missing entries.  
+3. Map and verify 14 class labels.  
+4. Produce stratified train/validation splits and an 8k stratified subset used for the sample-efficiency experiment.
+
+## How to reproduce (Colab recommended)
+
+1. Open `main_notebook.ipynb` in Google Colab.  
+2. Runtime → Change runtime type → GPU (T4 recommended for DistilBERT).  
+3. Run all cells (top → bottom). The notebook will install required packages, download datasets, and run experiments.  
+
+To export the environment from Colab (recommended step in the notebook):
+
+```python
+!pip freeze > requirements.txt
+from google.colab import files
+files.download('requirements.txt')
+```
+
+Local install (optional):
+
 ```bash
+python --version  # note the version (e.g., Python 3.11)
 pip install -r requirements.txt
 ```
 
-> ⚠️ Stages 1 & 2 take ~2–3 minutes on CPU. Stage 3 (DistilBERT) takes ~30 minutes on a T4 GPU.
+Notes:
+- Stage 1 & 2 (TF-IDF) run quickly on CPU.  
+- Stage 3 (DistilBERT fine-tuning) requires a GPU and takes tens of minutes depending on instance type.
+
+## Key dependencies
+
+Listed in `requirements.txt`. Example core libs used in the notebooks:
+
+- Python 3.11  
+- torch, transformers  
+- datasets, scikit-learn  
+- pandas, numpy  
+- matplotlib, seaborn  
+- lime (explainability)
+
+## Results and figures
+
+The notebook contains:  
+- A results table comparing accuracy / macro-F1 across methods.  
+- Per-class confusion matrices and F1 breakdowns.  
+- A sample-efficiency analysis (8k vs full dataset) with time/accuracy trade-offs.  
+
+Highlight: DistilBERT reached comparable accuracy to TF-IDF using only a small fraction of labeled data, emphasizing transfer learning's sample-efficiency.
+
+## Video presentation
+
+Watch a short walk-through of the project: https://www.youtube.com/watch?v=tJMxr0M0WzE&t=1s
+
+## Reproducibility & notes
+
+- The notebooks are curated and documented: please follow the annotated markdown cells inside `main_notebook.ipynb`.  
+- If you run locally, export and use the same `requirements.txt` generated from Colab.  
+- If you have a GPU and want to re-run DistilBERT experiments faster, use a Colab Pro / GCP / AWS instance with a T4 / A100.
+
+## Credits & references
+
+- DistilBERT: Sanh et al., 2019  
+- BERT: Devlin et al., 2019  
+- LIME: Ribeiro et al., 2016  
+
+## Contact
+
+If you spot issues or want to discuss the project, open an issue on the repo or reach out to the author via the GitHub profile: https://github.com/srijapentyala
 
 ---
 
-## 🔑 Key Dependencies
-
-| Package | Version | Purpose |
-|---------|---------|---------|
-| Python | 3.11 | Runtime |
-| torch | 2.3.0+cu121 | DistilBERT training |
-| transformers | 4.41.2 | DistilBERT model & tokenizer |
-| datasets | 2.19.1 | DBpedia 14 dataset loading |
-| scikit-learn | 1.4.2 | TF-IDF, LogReg, SVD, metrics |
-| pandas | 2.0.3 | Data manipulation |
-| numpy | 1.25.2 | Numerical operations |
-| lime | 0.2.0.1 | Model explainability |
-| matplotlib | 3.7.1 | Visualization |
-| seaborn | 0.13.2 | Statistical plots |
-
-Full environment: [`requirements.txt`](requirements.txt)
-
----
-
-## 📓 Checkpoint Notebooks
-
-The `checkpoints/` folder preserves the progression of the project throughout the semester:
-
-- **`checkpoint_1.ipynb`** — Initial dataset exploration across DBpedia, AG News, and Amazon Reviews; early EDA; baseline model sketches
-- **`checkpoint_2.ipynb`** — Expanded research questions; preliminary TF-IDF and SVD experiments; dataset narrowing to DBpedia 14
-
----
-
-## 📚 References
-
-1. Devlin et al. (2019). BERT: Pre-training of Deep Bidirectional Transformers. *arXiv:1810.04805*
-2. Sanh et al. (2019). DistilBERT, a distilled version of BERT. *arXiv:1910.01108*
-3. Ribeiro et al. (2016). "Why Should I Trust You?": Explaining the Predictions of Any Classifier. *KDD 2016*
-4. Auer et al. (2007). DBpedia: A Nucleus for a Web of Open Data. *ISWC 2007*
-5. Zhang, Zhao & LeCun (2015). Character-level Convolutional Networks for Text Classification. *NeurIPS 28*
+**Before submission**: Verify the repository is public and loads in an incognito browser window. Point reviewers to `main_notebook.ipynb` as the starting point.

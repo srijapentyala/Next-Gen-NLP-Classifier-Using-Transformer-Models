@@ -1,20 +1,13 @@
-# Core ML libraries
-transformers
-datasets
-evaluate
-torch
-
-# Data science libraries
-scikit-learn
-pandas
-matplotlib
-seaborn
-
-# Interpretability libraries
-lime
-shap
-
-# Utilities
-joblib
-numpy
-ipykernel
+torch==2.10.0+cu128
+transformers==5.0.0
+datasets==4.0.0
+scikit-learn==1.6.1
+pandas==2.2.2
+numpy==2.0.2
+matplotlib==3.10.0
+seaborn==0.13.2
+tqdm==4.67.3
+gdown==5.2.1
+huggingface-hub==1.10.1
+tokenizers==0.22.2
+lime==0.2.0.1

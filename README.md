@@ -1,5 +1,6 @@
 # Does Context Actually Matter for Text Classification?
 
+👉 Start here: [main_notebook.ipynb](./main_notebook.ipynb)
 
 This project compares classical bag-of-words pipelines (TF‑IDF + Logistic Regression) with contextual transformer fine‑tuning (DistilBERT) on the DBpedia 14 Wikipedia benchmark to answer when and why context helps. We run a three-stage study (TF‑IDF baseline, SVD compression test, DistilBERT sample-efficiency and full-data experiments), provide EDA, explainability (LIME), and a reproducible Colab-first workflow so reviewers can reproduce the results quickly.
 
@@ -126,10 +127,8 @@ Next-Gen-NLP-Classifier-Using-Transformer-Models/
 ├── data/                          # Placeholder + download instructions (do not commit large files)
 ├── dbpedia_csv/                   # (local) raw CSVs and model output — ignored by .gitignore
 ├── scripts/                       # Data helpers & image extraction tools
-├── .gitignore
-├── authenticate.sh                # helper for Git/GitHub auth (optional)
+├── .gitignore               # helper for Git/GitHub auth (optional)
 ├── main_notebook.ipynb            # Curated final notebook (start here)
-├── README.md                      # This file (rubric-compliant)
 └── requirements.txt               # Exported from Colab (session-specific freeze recommended)
 ```
 

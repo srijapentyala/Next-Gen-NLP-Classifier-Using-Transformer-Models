@@ -1,6 +1,7 @@
 Helper scripts in `scripts/`
 
 - `extract_images_from_notebook.py` — Extracts PNG/JPEG/SVG outputs and attachments from a notebook and saves them to an output folder (useful to capture figures produced in Colab and commit into `assets/`).
+-  `rename_assets_by_notebook_context.py` — Renames images in assets folder).
 
 Usage example:
 

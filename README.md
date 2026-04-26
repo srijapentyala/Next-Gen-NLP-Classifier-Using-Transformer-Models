@@ -33,14 +33,14 @@ https://www.youtube.com/watch?v=tJMxr0M0WzE
 
 3) Data
 
-- Dataset: DBpedia 14 (HuggingFace id: `dbpedia_14`), ~560k train / ~70k test. A Drive mirror is available if you prefer a local copy:
-   - Drive mirror: `https://drive.google.com/uc?export=download&id=0Bz8a_Dbh9QhbQ2Vic1kxMmZZQ1k`
+- DBpedia 14 is a standard 14-class benchmark of Wikipedia article titles and short abstracts (used widely for multi-class text classification). The dataset contains ~560k training examples and ~70k test examples, with each row providing a label, title, and abstract.
 
-Dataset summary (short):
+- A Drive mirror is available if you prefer a local copy:
+   - Drive mirror (direct download): [Google Drive mirror](https://drive.google.com/uc?export=download&id=0Bz8a_Dbh9QhbQ2Vic1kxMmZZQ1k)
 
-DBpedia 14 is a standard 14-class benchmark of Wikipedia article titles and short abstracts (used widely for multi-class text classification). The dataset contains ~560k training examples and ~70k test examples, with each row providing a label, title, and abstract.
 
-Preprocessing (high level — fully implemented in `main_notebook.ipynb`):
+
+- Preprocessing (high level — fully implemented in `main_notebook.ipynb`):
 
 - File discovery: notebook prefers local CSVs under `dbpedia_csv/` (or `data/dbpedia_csv/`), otherwise loads from HuggingFace and falls back to the Drive mirror via `gdown`.
 - Robust CSV parsing: `safe_read_csv()` handles plain and gzipped CSVs, uses a tolerant CSV reader, and enforces columns `[label, title, text]` to avoid misaligned files.

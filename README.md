@@ -166,13 +166,30 @@ Visual highlights (extracted from the notebook):
 
 ## Future work — short actionable directions
 
+
 1. k-fold cross-validation on the 8K DistilBERT experiments — run 5‑fold stratified CV to report mean ± CI and surface high‑variance classes.
+
+   What: Train DistilBERT across 5 stratified folds on the 8K subset and record per-fold accuracy and Macro F1.
+   How: Reuse the notebook training loop inside a fold loop, save metrics to CSV, and compute mean, std, and 95% CIs.
+   Outcome: Produce robust error bars, flag unstable classes, and confirm whether the 8K advantage is statistically reliable.
 
 2. Parameter‑efficient fine‑tuning (LoRA / adapters) — evaluate LoRA/adapters to reduce GPU/time at near-equivalent accuracy.
 
+   What: Replace full-parameter updates with LoRA or adapter modules and re-run 8K and full-data experiments.
+   How: Integrate a small LoRA/adapter wrapper around DistilBERT in the notebook and measure GPU memory, runtime, and accuracy trade-offs.
+   Outcome: Expect similar accuracy with 5–10× lower compute or memory usage, making full-data runs cheaper.
+
 3. Targeted augmentation for low‑recall classes — use back‑translation/paraphrasing or synonym injection to boost recall for rare labels.
 
+   What: Generate synthetic examples for low-recall classes using back-translation or paraphrase models and add them to training folds.
+   How: Implement a small augmentation pipeline in the notebook (or use nlpaug/backtranslation APIs) and compare per-class recall before/after augmentation.
+   Outcome: Improved recall for rare classes with minimal impact on common-class precision, validating cost-effective labeling strategies.
+
 4. Calibration & confidence‑based rejection — calibrate probabilities and add a reject option to reduce high‑impact overconfident errors in deployment.
+
+   What: Evaluate calibration (temperature scaling / isotonic) and add a reject threshold or abstention policy for low-confidence predictions.
+   How: Fit a calibration layer on validation logits, compute expected calibration error (ECE), and measure precision/recall with different rejection thresholds.
+   Outcome: Better-calibrated probabilities, fewer high-cost mistakes in production, and a recommended reject-policy for deployment.
 
 ---
 

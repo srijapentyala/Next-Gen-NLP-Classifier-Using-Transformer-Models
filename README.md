@@ -11,7 +11,7 @@ https://www.youtube.com/watch?v=tJMxr0M0WzE
 
 1) Deliverable (exact file to open)
 
-👉 The main deliverable is `main_notebook.ipynb` — open that file first and run top → bottom in Google Colab (GPU recommended for RQ3). Checkpoints live in `checkpoints/`.
+👉 The main deliverable is [main_notebook.ipynb](./main_notebook.ipynb) — open that file first and run top → bottom in Google Colab (GPU recommended for RQ3). Checkpoints live in `checkpoints/`.
 
 ---
 

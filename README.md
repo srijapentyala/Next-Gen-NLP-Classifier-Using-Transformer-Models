@@ -134,6 +134,68 @@ See `requirements.txt` for the full environment exported from Colab. Core librar
 
 ---
 
+### Key versions (top dependencies)
+
+These are the main packages used in the notebook (from `requirements.txt`):
+
+- torch==2.10.0+cu128
+- transformers==5.0.0
+- datasets==4.0.0
+- scikit-learn==1.6.1
+- pandas==2.2.2
+- numpy==2.0.2
+- matplotlib==3.10.0
+- seaborn==0.13.2
+
+---
+
+## Quickstart (run locally)
+
+1. Clone the repo and change directory:
+
+```bash
+git clone https://github.com/srijapentyala/Next-Gen-NLP-Classifier-Using-Transformer-Models.git
+cd Next-Gen-NLP-Classifier-Using-Transformer-Models
+```
+
+2. (Optional) Create a Python virtual environment and activate it:
+
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
+
+3. Install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+4. Open `main_notebook.ipynb` (Jupyter or Colab recommended) and run cells top→bottom.
+
+---
+
+## Data download
+
+The notebook downloads DBpedia automatically via HuggingFace. If you prefer to use a mirror, you can download the dataset archive here:
+
+- Direct mirror: https://drive.google.com/uc?export=download&id=0Bz8a_Dbh9QhbQ2Vic1kxMmZZQ1k
+
+Place any local CSV files under `dbpedia_csv/` if you want the notebook to pick them up instead of re-downloading.
+
+---
+
+## Reproducibility checklist (for reviewers)
+
+1. Open `main_notebook.ipynb` in Colab.  
+2. Select Runtime → Change runtime type → GPU (T4 recommended).  
+3. Run cells top→bottom.  
+4. Export `requirements.txt` from Colab if you want a bit-for-bit freeze and commit it to the repo.  
+
+Notes: include your Python version in the README after exporting the freeze.
+
+---
+
 ## Repository structure
 
 ```

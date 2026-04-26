@@ -38,23 +38,81 @@ This project asks: when and why does reading words in context (transformer model
 - Provided mirror (recommended if you prefer a local copy):
   - Google Drive: `https://drive.google.com/uc?export=download&id=0Bz8a_Dbh9QhbQ2Vic1kxMmZZQ1k`
 
-Preprocessing notes (implemented in `main_notebook.ipynb`):
-- Title + abstract concatenation (separator: ". ")
-- Drop empty rows and short texts
-- Normalize labels to 0–13
-- Stratified 80/20 split (train/test) and creation of an 8K stratified subset for sample-efficiency experiments
+---
 
-If you use the Drive mirror, download and place CSVs under `dbpedia_csv/` (or `data/dbpedia_csv/`) — the notebook auto-detects local files. Do NOT commit large CSV or model files to GitHub; use Git LFS or external storage and put links in `data/README.md`.
+## Preprocessing (detailed)
+
+The notebook implements a reproducible, defensive preprocessing pipeline. Key steps (and rationale) below — each step has assertions in the notebook that fail fast if something is unexpected.
+
+1. File discovery and robustness
+   - The notebook first checks for local CSVs under `dbpedia_csv/` (or `data/dbpedia_csv/`). If present, those are used. Otherwise it attempts to download via HuggingFace datasets, then falls back to a Drive mirror using `gdown`.
+
+2. Safe CSV loading
+   - `safe_read_csv()` handles plain CSV and gzipped CSV (`.gz`), uses a tolerant CSV reader (`engine='python'`, `on_bad_lines='skip'`) and enforces column names `[label, title, text]`.
+   - Encoding and bad-line handling prevent crashes on messy downloads.
+
+3. Title + abstract concatenation
+   - For each row we create a single text input by concatenating `title` and `text` with a separator (`". "`) to preserve sentence boundaries. This improves model signal and mirrors production text fields.
+
+4. Label normalization
+   - DBpedia labels are 1-indexed in some formats. We normalize labels to 0–13 (0-based) used by scikit-learn and PyTorch. The notebook asserts label range after normalization.
+
+5. Empty / short-row filtering
+   - Rows with empty text or extremely short text (< 5 characters) are removed to avoid spurious signals.
+
+6. Stratified splitting
+   - We perform a stratified 80/20 split on the training set to create a validation/test partition while preserving class proportions.
+   - For the DistilBERT sample-efficiency experiment we create a stratified 8K subset (approximately `8000 / 14` samples per class).
+
+7. Tokenization and length control (for transformers)
+   - DistilBERT tokenization (`distilbert-base-uncased`) is used with `max_length=128`, `padding='max_length'`, and `truncation=True`.
+   - EDA confirmed that ~99.9% of articles fit within 128 BPE tokens, so this truncation causes minimal information loss while saving GPU memory.
+
+8. Validation and assertions
+   - After every major step the notebook asserts the expected number of classes, no nulls, label ranges, and that stratification preserved class balance. These checks avoid silent errors.
+
+Notes for reviewers:
+- All preprocessing is transparent and implemented in code cells; you can re-run them in Colab and inspect intermediate CSVs under `dbpedia_csv/`.
 
 ---
 
-## How to reproduce (Colab recommended)
+## How to reproduce (Colab recommended) — step-by-step
+
+This section expands the quick instructions into an actionable checklist for reproducible runs in Colab.
 
 1. Open `main_notebook.ipynb` in Google Colab.
-2. Runtime → Change runtime type → GPU (T4 recommended for fine-tuning).
-3. Run cells top → bottom. The notebook installs packages automatically in Colab when needed.
 
-To capture the exact Colab environment for reproducibility, run a final cell in Colab:
+2. (Optional) Mount your Google Drive to save models and figures:
+
+```python
+from google.colab import drive
+drive.mount('/content/drive')
+# then set DRIVE_ROOT = '/content/drive/MyDrive/dbpedia_csv' if you want persistent storage
+```
+
+3. Change runtime to GPU (recommended): Runtime → Change runtime type → Hardware accelerator → GPU. T4 is recommended for DistilBERT fine-tuning.
+
+4. Install dependencies (the notebook auto-installs core libs, but you can pre-install the exported list):
+
+```bash
+# in a Colab cell
+!pip install -r requirements.txt
+```
+
+5. Choose what to run: quick baseline vs full fine-tune
+   - RQ1/RQ2 (TF‑IDF) — CPU-friendly: you can run the TF‑IDF sections top→bottom; expect minutes on Colab CPU.
+   - RQ3 (DistilBERT) — GPU required: run the DistilBERT preparation and the two training runs (8K subset and full) if you have GPU time.
+
+6. If you want to use the Drive mirror instead of HuggingFace, download and place CSVs under `dbpedia_csv/`:
+
+```bash
+mkdir -p dbpedia_csv
+# after downloading via browser or gdown
+mv ~/Downloads/train.csv dbpedia_csv/
+mv ~/Downloads/test.csv dbpedia_csv/
+```
+
+7. Export exact Colab environment for reproducibility (run near the notebook end):
 
 ```python
 !pip freeze > requirements.txt
@@ -62,55 +120,21 @@ from google.colab import files
 files.download('requirements.txt')
 ```
 
-Also record the Python version in Colab:
-
+Also record the Python version:
 ```python
 !python --version
 ```
 
-Save the downloaded `requirements.txt` to the repository root (replace the current `requirements.txt` if you want a session-specific freeze).
-
-Local reproduction (optional):
+8. Extract figures for the repo (optional):
 
 ```bash
-python --version  # record your Python version
-pip install -r requirements.txt
-jupyter lab  # or jupyter notebook
-open main_notebook.ipynb
+python scripts/extract_images_from_notebook.py --notebook main_notebook.ipynb --outdir assets
 ```
 
-Notes:
-- RQ1/RQ2 (TF‑IDF pipelines) run quickly on CPU.
-- RQ3 (DistilBERT fine-tuning) requires GPU for practical training times.
+9. Commit session-specific `requirements.txt` to the repo root if you want bit-for-bit reproduction.
 
----
-
-## Key dependencies (high level)
-
-The full environment is in `requirements.txt`. Key packages used by the notebook include:
-
-- Python 3.11 (recommended in Colab)
-- torch==2.10.0+cu128
-- transformers==5.0.0
-- datasets==4.0.0
-- scikit-learn==1.6.1
-- pandas==2.2.2
-- numpy==2.0.2
-- matplotlib, seaborn
-- lime (explainability)
-- gdown (optional, used to download Drive mirror)
-
-The exact versions used in your Colab session should be exported with `pip freeze` (see reproduction section above).
-
----
-
-## Results summary (headline)
-
-- TF‑IDF + Logistic Regression (RQ1): strong baseline (≈98.40% accuracy / Macro F1 on DBpedia). Fast and CPU-friendly.
-- TF‑IDF + TruncatedSVD (RQ2): compression hurts performance (≈96.5%); the negative result is instructive — the problem is context-blindness, not overfitting.
-- DistilBERT (RQ3): sample-efficient — fine‑tuned on ~8K examples it matches/exceeds TF‑IDF; full-data fine-tune yields marginally higher ceiling performance at much higher compute cost.
-
-See `main_notebook.ipynb` for full tables, confusion matrices, and per-class analysis.
+Notes about pushing to GitHub
+- Avoid pushing large files (>100MB). Use Git LFS or host externally and add the link to `data/README.md`.
 
 ---
 
@@ -128,9 +152,50 @@ Next-Gen-NLP-Classifier-Using-Transformer-Models/
 │   └── generate_placeholder_image.py (helper)
 ├── data/                          # Placeholder + instructions (do not commit large files)
 ├── assets/                        # Figures/images extracted from the notebook
-├── .gitignore                     # Ignores large files, caches, IDE artifacts
+├── .gitignore                     # Ignored patterns (large files, caches, IDE artifacts)
 └── COMMIT_INSTRUCTIONS.md         # Local commit/push instructions
 ```
+
+---
+
+## Results & Conclusion (descriptive)
+
+This section summarizes the key experimental outcomes and the practical implications for model selection.
+
+Key numerical outcomes:
+- TF‑IDF + Logistic Regression (RQ1): ~98.40% accuracy / Macro F1 on test set. Fast to train (minutes) and highly interpretable.
+- TF‑IDF + TruncatedSVD (RQ2): ~96.5% — compression reduced discriminative rare-word signals and hurt performance.
+- DistilBERT (RQ3): fine-tuned on ~8K samples achieves ~98.89% (sample-efficient); full-data fine-tune reaches ~99.65% (ceiling), but at ~55× longer training time.
+
+Interpretation and recommendations:
+- For clean, structured text with abundant labeled data, TF‑IDF + LogReg is a very strong, cost-effective choice.
+- When labeled data is scarce or the domain is noisy, pre-trained transformers (DistilBERT) offer significant sample efficiency and robustness.
+- Dimensionality reduction (SVD) is not always beneficial — it can discard rare but highly discriminative tokens.
+
+Actionable decision rules:
+- If you have no GPU and >50k labels: use TF‑IDF + Logistic Regression for speed and interpretability.
+- If you have GPU access and <50k labels: use DistilBERT fine-tuning (8K shows strong performance).
+- For noisy user-generated text (social media, OCR) prefer DistilBERT due to contextual robustness.
+
+Visual highlights
+
+- Performance breakdown (per-class) — see `assets/060-detailed-performance-breakdown-by-class.png`:
+
+![Per-class performance](assets/060-detailed-performance-breakdown-by-class.png)
+
+- Cross-model comparison (accuracy vs F1) — see `assets/090-phase-8-cross-model-comparison.png`:
+
+![Model comparison](assets/090-phase-8-cross-model-comparison.png)
+
+---
+
+## Future scope
+
+- Run k-fold cross-validation (esp. for the 8K DistilBERT run) to measure variance and confidence intervals.
+- Explore lightweight transformer adapters or parameter-efficient fine-tuning (LoRA / adapters) to reduce GPU cost.
+- Evaluate on noisier datasets (social media, OCR) to quantify where context matters most in the wild.
+- Add inference-latency bench for deployment scenarios (CPU vs GPU inference cost and throughput).
+- Provide a small Dockerfile or conda environment for reviewers who want a fully reproducible local environment.
 
 ---
 
@@ -155,10 +220,4 @@ Next-Gen-NLP-Classifier-Using-Transformer-Models/
 
 ---
 
-## Contact / support
-
-If something doesn't run in your environment, please open an issue in the repository with the exact error and your Python + OS details. For immediate help, I can prepare a minimal Dockerfile or a small conda environment YAML on request.
-
----
-
-**Before submission**: ensure the repo is public and `main_notebook.ipynb` loads in an incognito window. Replace `requirements.txt` with a Colab-exported freeze if you want exact reproducibility.
+**End of README**

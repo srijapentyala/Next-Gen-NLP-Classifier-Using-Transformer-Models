@@ -94,5 +94,3 @@ https://drive.google.com/uc?export=download&id=0Bz8a_Dbh9QhbQ2Vic1kxMmZZQ1k
 
 ---
 
-End of data/README.md
-

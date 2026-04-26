@@ -1,171 +1,201 @@
-# Does Context Actually Matter for Text Classification?
+# 🤖 Does Context Actually Matter for Text Classification?
+## A Three-Stage Data-Driven Investigation on 560,000 Wikipedia Articles
 
-👉 Start here: [main_notebook.ipynb](./main_notebook.ipynb)
+**Course:** CSCE 676 — Data Mining  
 
-This project compares classical bag-of-words pipelines (TF‑IDF + Logistic Regression) with contextual transformer fine‑tuning (DistilBERT) on the DBpedia 14 Wikipedia benchmark to answer when and why context helps. We run a three-stage study (TF‑IDF baseline, SVD compression test, DistilBERT sample-efficiency and full-data experiments), provide EDA, explainability (LIME), and a reproducible Colab-first workflow so reviewers can reproduce the results quickly.
+**Dataset:** [DBpedia 14-Class Ontology Classification — 560K Wikipedia article abstracts](https://drive.google.com/uc?export=download&id=0Bz8a_Dbh9QhbQ2Vic1kxMmZZQ1k)
 
-Project video (watch first) 🎥
+**GitHub:** [Next-Gen-NLP-Classifier-Using-Transformer-Models](https://github.com/srijapentyala/Next-Gen-NLP-Classifier-Using-Transformer-Models)
 
-https://www.youtube.com/watch?v=tJMxr0M0WzE
+> *"In the age of transformers, everyone assumes you need a GPU. This project answers when that assumption is actually correct — with 560,000 data points, not conference paper hype."*
 
----
-
-1) Deliverable
-
-👉 The main deliverable is [main_notebook.ipynb](./main_notebook.ipynb) — open that file first and run top → bottom in Google Colab (GPU recommended for RQ3). Checkpoints live in `checkpoints/`.
+Wikipedia's DBpedia project organizes over 6 million entities into ontological categories. Automatically assigning any piece of text to one of 14 top-level categories — Company, Animal, Film, Athlete, etc. — enables smarter search, better knowledge-graph curation, and faster cross-lingual entity linking. This project uses that challenge to answer a foundational question in modern NLP: **does reading words *in context* actually improve classification — or is knowing *which* words appear enough?**
 
 ---
 
-2) Research questions
+## 👉 Start Here: [`main_notebook.ipynb`](main_notebook.ipynb)
 
-- RQ1 — How well does TF‑IDF + Logistic Regression perform on DBpedia 14?
-
-   This question establishes a fast, interpretable baseline using bag-of-words features and a linear classifier; it measures how much signal exists without context.  The baseline guides whether a costly transformer fine-tune is justified in practice.
-
-- RQ2 — Does compressing TF‑IDF features with TruncatedSVD help or hurt predictive performance?
-
-   This probes whether dimensionality reduction can retain discriminative signal while speeding models and reducing memory.  A negative result shows that rare but informative tokens matter and that aggressive compression risks harming accuracy.
-
-- RQ3 — Does a contextual model (DistilBERT) outperform TF‑IDF, and how many labeled examples are needed to match or exceed the baseline (8K vs full)?
-
-   This measures the value of context: sample-efficiency (can a small fine-tune beat TF‑IDF) and ceiling performance (full-data fine-tune).  The result informs trade-offs between annotation cost, compute, and final accuracy.
+The main deliverable is **`main_notebook.ipynb`** — a curated, narrative-driven notebook that walks through all ten phases of the project, from environment setup and EDA through every model, cross-model comparison, LIME explainability, and the final conclusions.
 
 ---
 
-3) Data
+## 🎥 Project Video
 
-- DBpedia 14 is a standard 14-class benchmark of Wikipedia article titles and short abstracts (used widely for multi-class text classification). The dataset contains ~560k training examples and ~70k test examples, with each row providing a label, title, and abstract.
-
-- A Drive mirror is available if you prefer a local copy:
-   - Drive mirror (direct download): [Dataset](https://drive.google.com/uc?export=download&id=0Bz8a_Dbh9QhbQ2Vic1kxMmZZQ1k)
-
-
-
-- Preprocessing (high level — fully implemented in `main_notebook.ipynb`):
-
-- File discovery: notebook prefers local CSVs under `dbpedia_csv/` (or `data/dbpedia_csv/`), otherwise loads from HuggingFace and falls back to the Drive mirror via `gdown`.
-- Robust CSV parsing: `safe_read_csv()` handles plain and gzipped CSVs, uses a tolerant CSV reader, and enforces columns `[label, title, text]` to avoid misaligned files.
-- Text assembly: `title` and `text` are concatenated with a separator (`". "`) to form the model input.
-- Label handling: labels normalized to 0–13 (0-based) with an assertion that the final label set is contiguous and size 14.
-- Filtering: remove null/very-short texts (<5 chars) to avoid noisy examples.
-- Splits: stratified 80/20 split; create a stratified 8K training subset for the sample-efficiency DistilBERT experiment.
-- Tokenization: DistilBERT tokenizer with `max_length=128`, `padding='max_length'`, `truncation=True` (chosen after EDA showed minimal loss).
-- Safety checks: assertions after each stage (class counts, nulls, stratification balance) to fail fast if something goes wrong.
+**[▶ Watch the Project Walkthrough on YouTube](https://youtu.be/tJMxr0M0WzE?si=o4YTgmM3AhyMhFCr)**
 
 ---
 
-4) How to reproduce (Colab-first, step-by-step)
+## 🔬 Research Questions
 
--  Open `main_notebook.ipynb` in Google Colab.
--  (Optional) Mount Google Drive if you want to persist downloads or save models:
+This project is organized around three research questions, each answered by a dedicated modeling stage:
+
+| RQ | Question | Technique | Test Accuracy / Macro F1 |
+|----|----------|-----------|--------------------------|
+| **RQ1** | How far can word frequencies alone take us? | TF-IDF + Logistic Regression | **98.4%** |
+| **RQ2** | Can compressing features into topics help? | TF-IDF + Truncated SVD | 96.5% |
+| **RQ3** | Does reading words in context close the gap? | Fine-Tuned DistilBERT | **98.9%** |
+
+---
+
+## 📂 Dataset
+
+**Name:** DBpedia 14-Class Ontology Classification Dataset  
+**Source:** [HuggingFace `dbpedia_14`](https://drive.google.com/uc?export=download&id=0Bz8a_Dbh9QhbQ2Vic1kxMmZZQ1k)  
+**Original paper:** Auer et al., 2007 — *DBpedia: A Nucleus for a Web of Open Data*
+
+### Structure
+
+Each record contains an article title and abstract mapped to one of 14 top-level ontological categories:
+
+| Column | Content |
+|--------|---------|
+| Label | Integer 0–13 |
+| Title | Wikipedia article title |
+| Content | Wikipedia article abstract |
+
+### The 14 Ontology Classes
+
+```
+Company | EducationalInstitution | Artist | Athlete | OfficeHolder
+MeanOfTransportation | Building | NaturalPlace | Village | Animal
+Plant | Album | Film | WrittenWork
+```
+
+### Size
+
+- **Total training samples:** 560,000 (40,000 per class — perfectly balanced)
+- **Total test samples:** 70,000
+- **Train split used (80%):** ~448,000 samples
+- **Test split used (20%):** ~112,000 samples
+- **Classes:** 14 (perfectly balanced)
+
+### Downloading the Data
+
+The dataset can be downloaded from HuggingFace or Google Drive. The notebook's Phase 1 (Environment Setup) handles this automatically and tries multiple download paths in sequence. Place the files at:
+
+```
+data/
+├── train.csv
+└── test.csv
+```
+
+### Preprocessing
+
+All preprocessing is done inside `main_notebook.ipynb` Phase 2. Key steps:
+
+1. Assign column names (`label`, `title`, `content`)
+2. Concatenate `title + ". " + content` into a single `text` field
+3. Normalize labels from 1–14 to 0–13 (required by sklearn and PyTorch)
+4. Strip empty-abstract rows
+5. Apply a stratified 80/20 train-test split (seed 42) — preserves perfect class balance
+
+---
+
+## ▶️ Reproducibility
+
+This project was developed in **Google Colab** (A100 GPU for DistilBERT training).
+
+### Quick Start
+
+1. Open [Google Colab](https://colab.research.google.com/) and upload (or open from GitHub) `main_notebook.ipynb`
+2. Go to **Runtime → Change runtime type → T4 GPU** (required for Phase 7 DistilBERT training)
+3. Run all cells top to bottom — the notebook auto-detects paths and downloads the dataset
+
+### Install Dependencies
+
+Dependencies are installed automatically in the first cell. To install manually:
 
 ```python
-from google.colab import drive
-drive.mount('/content/drive')
-# set DRIVE_ROOT = '/content/drive/MyDrive/dbpedia_csv' if you want persistent storage
+!pip install transformers datasets accelerate scikit-learn pandas matplotlib seaborn lime -q
 ```
-- Change runtime type → GPU (T4 recommended) for DistilBERT fine-tuning.
-- Install dependencies (or run the notebook helper cell which installs core libs):
+
+Or install from the full requirements file:
 
 ```bash
-!pip install -r requirements.txt
+pip install -r requirements.txt
 ```
 
-- Recommended run order:
-- Run EDA and RQ1 (TF‑IDF + Logistic Regression) first — fast on CPU.
-- Run RQ2 (TF‑IDF + SVD) next if you want the compression baseline.
-- Run RQ3 DistilBERT: first the 8K stratified fine-tune (short) then the full-data fine-tune (long). Use Colab GPU for both.
+### Reproducibility Guarantees
 
-- Export exact Colab environment for bit-for-bit reproducibility (run near the notebook end):
+All random seeds are fixed at `42` — Python, NumPy, PyTorch CPU and GPU produce identical outputs on every run. Dataset paths auto-detect across Google Colab and local environments — no manual path editing required.
 
-```python
-!pip freeze > requirements.txt
-from google.colab import files
-files.download('requirements.txt')
-```
+### Run Order
 
-Record the Python version as well:
+| Step | File | Description |
+|------|------|-------------|
+| 1 | `checkpoints/checkpoint_1.ipynb` | Dataset exploration and selection |
+| 2 | `checkpoints/checkpoint_2.ipynb` | Research question formalization and experimental design |
+| 3 | `main_notebook.ipynb` | Full pipeline — EDA through conclusions |
 
-```python
-!python --version
-```
+### Runtime Note
 
-- (Optional) Extract notebook figures into `assets/` for easy review:
-
-```bash
-python scripts/extract_images_from_notebook.py --notebook main_notebook.ipynb --outdir assets
-```
-
-Notes: avoid committing large CSVs or model weights to GitHub; use Git LFS or external hosting and update `data/README.md` with links.
+DistilBERT training on the full 448K dataset is computationally intensive (multi-hour without A100). The notebook includes reported results and a sample-efficient 8K run that finishes in ~30–60 seconds on a T4 GPU.
 
 ---
 
-5) Key dependencies (high-level)
+## 🔑 Key Dependencies and Versions
 
-- Python 3.11 (recommended in Colab)
-- torch (GPU build recommended; notebook tested with torch==2.10.0+cu128)
-- transformers==5.0.0
-- datasets (HuggingFace) ~4.x
-- scikit-learn==1.6.1
-- pandas==2.2.2
-- numpy==2.0.2
-- matplotlib, seaborn
-- lime (explainability)
+Python version: **3.x (Google Colab default)**
 
-Full dependency freeze should be exported from Colab to `requirements.txt` and committed for exact reproducibility.
+| Package | Used For |
+|---------|---------|
+| pandas | Data loading and manipulation |
+| numpy | Numerical operations |
+| scikit-learn | TF-IDF, Logistic Regression, SVD, metrics |
+| matplotlib | Visualizations |
+| seaborn | Heatmaps and EDA plots |
+| scipy | Scientific computing utilities |
+| transformers | DistilBERT (HuggingFace) |
+| datasets | HuggingFace dataset utilities |
+| accelerate | HuggingFace Trainer GPU support |
+| torch | PyTorch backend for DistilBERT |
+| lime | Local Interpretable Model-Agnostic Explanations |
+| tqdm | Progress reporting |
+
+The complete list of every package and version from the Colab session lives in [`requirements.txt`](requirements.txt).
 
 ---
 
-6) Repo structure (short tree)
+## 🗂️ Checkpoint Notebooks
+
+| Notebook | Contents |
+|----------|----------|
+| [`checkpoints/checkpoint_1.ipynb`](checkpoints/checkpoint_1.ipynb) | Three candidate datasets evaluated (DBpedia, AG News, Amazon Reviews); DBpedia selected; initial EDA and data quality assessment |
+| [`checkpoints/checkpoint_2.ipynb`](checkpoints/checkpoint_2.ipynb) | Research questions formalized; experimental framework designed; hypotheses stated with EDA support |
+
+---
+
+## 📁 Repo Structure
 
 ```
 Next-Gen-NLP-Classifier-Using-Transformer-Models/
-├── assets/                        # Extracted figures from the notebook
-├── checkpoints/                   # Checkpoint notebooks
-│   ├── checkpoint_1.ipynb
-│   └── checkpoint_2.ipynb
-├── data/                          # Placeholder + download instructions (do not commit large files)
-├── dbpedia_csv/                   # (local) raw CSVs and model output — ignored by .gitignore
-├── scripts/                       # Data helpers & image extraction tools
-├── .gitignore               # helper for Git/GitHub auth (optional)
-├── main_notebook.ipynb            # Curated final notebook (start here)
-└── requirements.txt               # Exported from Colab (session-specific freeze recommended)
+│
+└── assets/
+    ├── detailed-performance-breakdown-by-class.png
+    └── 090-phase-8-cross-model-comparison.png
+         ....
+├── checkpoints/
+│   ├── checkpoint_1.ipynb       # Checkpoint 1: Dataset selection & initial EDA
+│   └── checkpoint_2.ipynb       # Checkpoint 2: Research questions & experimental design
+│
+├── data/
+│   README.md(instructions to download and work with data)
+│
+├── scripts/
+│  ├── extract_images_from_notebook.py      # To extract all images from notebook
+│  ├──rename_assets_by_notebook_context.py  #Rename assets figure names
+├── main_notebook.ipynb
+├── requirements.txt  
+
 ```
 
 ---
 
-## Results & Conclusion — detailed takeaways
+## 📊 Results Summary
 
-This section gives a concise, reproducible summary of the numeric results, important qualitative observations, and practical guidance for choosing a model for similar classification tasks.
+The final notebook makes a clear case for a nuanced conclusion: **on clean, balanced, keyword-rich Wikipedia text, classical word-frequency methods are competitive with modern transformers in raw accuracy — but DistilBERT achieves the same performance with 56× less labeled data.** The true transformer advantage lives in sample efficiency, not peak accuracy on well-structured text.
 
-Headline numbers (test set):
-
-- TF‑IDF + Logistic Regression (RQ1): ~98.40% accuracy and comparable Macro F1. Training and evaluation are very fast (minutes on CPU) and require negligible GPU resources.
-- TF‑IDF + TruncatedSVD (RQ2): ~96.5% accuracy — dimensionality reduction reduced signal from rare but discriminative tokens and increased confusion between related classes.
-- DistilBERT (RQ3): fine-tuning on a stratified ~8K subset yields ~98.89% accuracy (strong sample-efficiency). Fine-tuning on the full training set produces a higher ceiling (~99.6%) but requires substantially more GPU time (order-of-magnitude slower; in our runs the full-data run took ~55× more wall-clock GPU time than the 8K run).
-
-Per-class observations and failure modes:
-
-- Several small classes (few-shot labels) show degraded recall in the TF‑IDF pipelines because they rely on rare tokens that get lost when using SVD or aggressive token pruning.
-- DistilBERT improves per-class recall for classes with subtle contextual cues — it captures phrase-level patterns that TF‑IDF misses.
-- The confusion matrices (see assets) show the most common confusions are semantically close classes (e.g., different types of companies or locations); these are good candidates for label-merging or hierarchical classification in future work.
-
-Compute, time, and resource notes (reproducibility-friendly):
-
-- Environment: experiments were run in Google Colab with a T4 GPU for transformer fine-tuning. The notebook records the Python and package versions; export `requirements.txt` from Colab to reproduce exact runtime.
-- DistilBERT hyperparameters used for reported runs (notebook cells): seed=42, max_length=128, batch_size=16 (8 for GPU memory-limited runs), lr=2e-5, epochs=3 for 8K and epochs=2–3 for larger runs depending on learning curves.
-- Checkpoints and model artifacts were saved to an output directory (the notebook uses a `checkpoints/` folder). Avoid committing large checkpoints to GitHub — use Drive or S3 for storage and link them in `data/README.md`.
-
-Practical recommendations (actionable):
-
-- Quick evaluation / baseline: Run TF‑IDF + Logistic Regression first (minutes) to establish a reliable lower bound.
-- If you have GPU and <50k labels: fine-tune DistilBERT on a stratified 8K subset to measure sample-efficiency gains before committing to a full fine-tune.
-- If the final accuracy gain is small (<0.5 percentage point) but cost is high, prefer TF‑IDF for production (faster, cheaper, interpretable).
-- Use per-class error analysis (confusion matrices and LIME explanations in the notebook) to decide if label consolidation or targeted data collection is more effective than wholesale model replacement.
-
-Visual highlights (extracted from the notebook):
-
-Summary comparison (table):
+### Final Results Scorecard
 
 | Model | Val/Test Accuracy | Val/Test Macro F1 | Training Samples | Key Finding |
 |---|---:|---:|---:|---|
@@ -174,39 +204,98 @@ Summary comparison (table):
 | Stage 3: DistilBERT (8K) | 98.89% | 98.88% | ~8,000 | Exceeds Stage 1 with 56× less data |
 | Stage 3: DistilBERT (Full 448K) | 99.65% | 99.65% | 448,000 | Transfer learning ceiling at scale |
 
-- Performance breakdown (per-class): `assets/060-detailed-performance-breakdown-by-class.png`
+### Main Takeaways
+
+- **TF-IDF + Logistic Regression is a remarkably strong baseline** — 98.4% Macro F1 in ~2 CPU minutes with no neural components.
+- **SVD compression makes things worse**, confirming the problem is context-blindness, not sparsity. Rare, category-specific words (\"species\", \"directed\", \"founded\") are discarded by SVD but are exactly what TF-IDF exploits.
+- **DistilBERT matches TF-IDF's accuracy with 56× less labeled data**, proving that transfer learning's real advantage is in the low-label regime, not raw accuracy on abundant-data benchmarks.
+- **DistilBERT fine-tuned on the full dataset edges ahead** to ~99.65%, but the marginal gain must be weighed against 50× more training data and GPU compute.
+- **The EDA prediction was verified**: classes sharing biographical vocabulary (Artist, Athlete, OfficeHolder) were identified as the hardest before any model was trained — and they were.
+- **LIME explainability reveals two different strategies**: TF-IDF relies on 4–6 keyword anchors per prediction; DistilBERT uses distributed contextual features that are more robust to vocabulary variation.
+
+### Per-class performance breakdown
+
+This per-class view shows where TF-IDF struggles most. The confusions concentrate along Artist ↔ Athlete ↔ OfficeHolder — exactly the biographical classes that EDA §3.5 predicted would be hardest — while technically-distinct classes like MeanOfTransportation, Animal, and Album achieve near-perfect scores.
+
+- Performance breakdown (per-class): `assets/detailed-performance-breakdown-by-class.png`
 
 ![Per-class performance](assets/detailed-performance-breakdown-by-class.png)
 
+### Cross-model comparison (Accuracy vs. F1)
+
+This figure shows the full leaderboard comparison across all three stages. Stage 2 (SVD) drops below the classical baseline, Stage 1 and Stage 3 (8K) tie at 98.4%, and Stage 3 on the full dataset reaches the ceiling performance.
+
 - Cross-model comparison (accuracy vs F1): `assets/090-phase-8-cross-model-comparison.png`
+
 ![Model comparison](assets/090-phase-8-cross-model-comparison.png)
 
-## Future work — short actionable directions
-
-
-- k-fold cross-validation on the 8K DistilBERT experiments — run 5‑fold stratified CV to report mean ± CI and surface high‑variance classes.
-
-   What: Train DistilBERT across 5 stratified folds on the 8K subset and record per-fold accuracy and Macro F1.
-   How: Reuse the notebook training loop inside a fold loop, save metrics to CSV, and compute mean, std, and 95% CIs.
-   Outcome: Produce robust error bars, flag unstable classes, and confirm whether the 8K advantage is statistically reliable.
-
-- Parameter‑efficient fine‑tuning (LoRA / adapters) — evaluate LoRA/adapters to reduce GPU/time at near-equivalent accuracy.
-
-   What: Replace full-parameter updates with LoRA or adapter modules and re-run 8K and full-data experiments.
-   How: Integrate a small LoRA/adapter wrapper around DistilBERT in the notebook and measure GPU memory, runtime, and accuracy trade-offs.
-   Outcome: Expect similar accuracy with 5–10× lower compute or memory usage, making full-data runs cheaper.
-
-- Targeted augmentation for low‑recall classes — use back‑translation/paraphrasing or synonym injection to boost recall for rare labels.
-
-   What: Generate synthetic examples for low-recall classes using back-translation or paraphrase models and add them to training folds.
-   How: Implement a small augmentation pipeline in the notebook (or use nlpaug/backtranslation APIs) and compare per-class recall before/after augmentation.
-   Outcome: Improved recall for rare classes with minimal impact on common-class precision, validating cost-effective labeling strategies.
-
-- Calibration & confidence‑based rejection — calibrate probabilities and add a reject option to reduce high‑impact overconfident errors in deployment.
-
-   What: Evaluate calibration (temperature scaling / isotonic) and add a reject threshold or abstention policy for low-confidence predictions.
-   How: Fit a calibration layer on validation logits, compute expected calibration error (ECE), and measure precision/recall with different rejection thresholds.
-   Outcome: Better-calibrated probabilities, fewer high-cost mistakes in production, and a recommended reject-policy for deployment.
+**Central conclusion:** On clean, structured Wikipedia text, context provides a sample-efficiency advantage rather than an accuracy advantage. TF-IDF+LR is the right choice when you have abundant labeled data and no GPU; DistilBERT is the right choice when your label budget is tight or your text is noisy and contextually ambiguous.
 
 ---
 
+## ⚠️ Limitations
+
+- **Single dataset:** DBpedia is unusually clean and balanced. On noisier domains (social media, OCR text, medical records), transformer advantages would likely be larger and more consistent.
+- **Single split:** Metrics are computed from one stratified 80/20 split (RQ1/RQ2) and a separate 10% internal validation split for DistilBERT (RQ3). k-fold cross-validation would provide confidence intervals, especially important for the 8K DistilBERT run.
+- **Compute constraints:** The 8K DistilBERT subset was chosen for GPU tractability on Colab. Full fine-tuning on ~448K samples shows stronger results but requires significantly more compute.
+- **No production drift testing:** The notebook focuses on model quality, not long-term data drift, latency at scale, or real-time monitoring after deployment.
+- **Domain dependence:** Results are optimized for the DBpedia ontology space; performance may shift for a different label set or writing style.
+
+---
+
+## 🚀 Practical Deployment
+
+### Recommended Deployment Path
+
+The right model depends on your data characteristics and label budget:
+
+| Scenario | Recommended Model | Justification |
+|----------|------------------|---------------|
+| No GPU; real-time inference | **TF-IDF + LR** | ~2 min training, microsecond prediction, fully interpretable |
+| GPU available; limited labels (< 50K) | **DistilBERT** | Matches TF-IDF performance with 56× less labeled data |
+| GPU available; full dataset | **DistilBERT (full fine-tune)** | ~99.65% ceiling performance |
+| Noisy user-generated text | **DistilBERT** | Contextual robustness handles vocabulary variation TF-IDF cannot |
+
+### Decision Framework
+
+```
+What is your label budget?
+├── ≥ 50,000 labeled examples  →  TF-IDF + LogReg
+│   Cost: $0 (CPU only) | Accuracy: 98.4% | Interpretable
+└── < 50,000 labeled examples  →  DistilBERT
+    Cost: $1–10 GPU | Accuracy: same | 56× data efficiency
+
+Is your text noisy (typos, slang, ambiguous context)?
+├── Clean (Wikipedia, formal docs)  →  TF-IDF competitive
+└── Noisy (social media, OCR, user-generated)  →  DistilBERT advantage grows
+```
+
+### Suggested Production Workflow
+
+1. Accept an article title and abstract as input.
+2. Normalize text using the same preprocessing used in `main_notebook.ipynb` (concatenate, normalize whitespace).
+3. Route through a saved TF-IDF/LR bundle (fast path) or DistilBERT inference endpoint (quality path).
+4. Return the predicted ontology class plus confidence scores.
+5. Log predictions and low-confidence examples for review and future retraining.
+
+---
+
+## 🔮 Future Scope
+
+- **Error analysis:** Build a confusion-focused analysis to understand where class overlap still hurts performance, which examples are ambiguous, and whether certain label pairs (Artist/Athlete, Company/EducationalInstitution) are structurally hard to separate.
+- **Noisy domain transfer:** Evaluate the same three-stage pipeline on noisier datasets (user-generated text, OCR output) to quantify how much the transformer advantage grows when vocabulary is less structured.
+- **Larger transformer baselines:** Compare DistilBERT against full BERT-base and RoBERTa to test whether the additional parameters meaningfully close the remaining per-class spread.
+- **Robust evaluation:** Replace the single split with k-fold cross-validation to obtain confidence intervals on every metric comparison, especially for the 8K DistilBERT run where variance could be meaningful.
+- **Model efficiency:** Explore quantization and mixed-precision inference to reduce DistilBERT's inference cost without sacrificing classification accuracy.
+- **Topic discovery:** Use BERTopic or LDA to uncover within-class subtopic structure (e.g., different types of Films or Animals) that the coarse 14-label schema hides.
+
+---
+
+## 📚 References
+
+1. Devlin, J., Chang, M.-W., Lee, K., & Toutanova, K. (2019). BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding. *arXiv:1810.04805*.
+2. Sanh, V., Debut, L., Chaumond, J., & Wolf, T. (2019). DistilBERT, a distilled version of BERT. *arXiv:1910.01108*.
+3. Ribeiro, M.T., Singh, S., & Guestrin, C. (2016). "Why Should I Trust You?": Explaining the Predictions of Any Classifier. *KDD 2016*.
+4. Auer, S., et al. (2007). DBpedia: A Nucleus for a Web of Open Data. *ISWC 2007*.
+5. Zhang, X., Zhao, J., & LeCun, Y. (2015). Character-level Convolutional Networks for Text Classification. *NeurIPS 28*.
+6. Joachims, T. (1998). Text Categorization with Support Vector Machines. *ECML 1998*.

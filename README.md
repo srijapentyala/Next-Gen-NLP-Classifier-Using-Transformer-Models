@@ -1,77 +1,3 @@
-## Results & Conclusion — detailed takeaways
-
-This section gives a concise, reproducible summary of the numeric results, important qualitative observations, and practical guidance for choosing a model for similar classification tasks.
-
-Headline numbers (test set):
-
-- TF‑IDF + Logistic Regression (RQ1): ~98.40% accuracy and comparable Macro F1. Training and evaluation are very fast (minutes on CPU) and require negligible GPU resources.
-- TF‑IDF + TruncatedSVD (RQ2): ~96.5% accuracy — dimensionality reduction reduced signal from rare but discriminative tokens and increased confusion between related classes.
-- DistilBERT (RQ3): fine-tuning on a stratified ~8K subset yields ~98.89% accuracy (strong sample-efficiency). Fine-tuning on the full training set produces a higher ceiling (~99.6%) but requires substantially more GPU time (order-of-magnitude slower; in our runs the full-data run took ~55× more wall-clock GPU time than the 8K run).
-
-Per-class observations and failure modes:
-
-- Several small classes (few-shot labels) show degraded recall in the TF‑IDF pipelines because they rely on rare tokens that get lost when using SVD or aggressive token pruning.
-- DistilBERT improves per-class recall for classes with subtle contextual cues — it captures phrase-level patterns that TF‑IDF misses.
-- The confusion matrices (see assets) show the most common confusions are semantically close classes (e.g., different types of companies or locations); these are good candidates for label-merging or hierarchical classification in future work.
-
-Compute, time, and resource notes (reproducibility-friendly):
-
-- Environment: experiments were run in Google Colab with a T4 GPU for transformer fine-tuning. The notebook records the Python and package versions; export `requirements.txt` from Colab to reproduce exact runtime.
-- DistilBERT hyperparameters used for reported runs (notebook cells): seed=42, max_length=128, batch_size=16 (8 for GPU memory-limited runs), lr=2e-5, epochs=3 for 8K and epochs=2–3 for larger runs depending on learning curves.
-- Checkpoints and model artifacts were saved to an output directory (the notebook uses a `checkpoints/` folder). Avoid committing large checkpoints to GitHub — use Drive or S3 for storage and link them in `data/README.md`.
-
-Practical recommendations (actionable):
-
-- Quick evaluation / baseline: Run TF‑IDF + Logistic Regression first (minutes) to establish a reliable lower bound.
-- If you have GPU and <50k labels: fine-tune DistilBERT on a stratified 8K subset to measure sample-efficiency gains before committing to a full fine-tune.
-- If the final accuracy gain is small (<0.5 percentage point) but cost is high, prefer TF‑IDF for production (faster, cheaper, interpretable).
-- Use per-class error analysis (confusion matrices and LIME explanations in the notebook) to decide if label consolidation or targeted data collection is more effective than wholesale model replacement.
-
-Visual highlights (extracted from the notebook):
-
-- Performance breakdown (per-class): `assets/060-detailed-performance-breakdown-by-class.png`
-
-![Per-class performance](assets/060-detailed-performance-breakdown-by-class.png)
-
-- Cross-model comparison (accuracy vs F1): `assets/090-phase-8-cross-model-comparison.png`
-![Model comparison](assets/090-phase-8-cross-model-comparison.png)
-## Future work — concrete experiments and next steps
-
-Below are concrete, high-impact directions with short descriptions and expected outcomes. Each item includes what to run and what you should expect to learn.
-
-1. k-fold cross-validation on the 8K DistilBERT experiments
-   - What: run 5-fold (or 3× repeated stratified splits) on the 8K subset to estimate variance and produce confidence intervals for accuracy and Macro F1.
-   - Why: single-split results can overstate performance; k-fold reveals stability and helps decide whether the observed gain is robust.
-   - Expected outcome: estimate ±CI around the 98.8% point estimate; identify high-variance classes.
-
-2. Parameter-efficient fine-tuning (LoRA / adapters)
-   - What: replace full-parameter fine-tuning with LoRA or adapter layers and repeat the 8K and full-data experiments.
-   - Why: reduces GPU memory and compute, enabling near full-data performance at a fraction of the cost.
-   - Expected outcome: similar accuracy with <10% of the GPU computation/time.
-
-3. Targeted data augmentation for low-recall classes
-   - What: use back-translation, paraphrasing, or class-specific synonym insertion for classes with low recall in TF‑IDF runs.
-   - Why: improves recall for rare classes without needing large-scale labeling.
-   - Expected outcome: improved per-class recall for rare labels with minimal effect on common classes.
-
-4. Calibration and confidence-based rejection
-   - What: evaluate model calibration (temperature scaling) and implement a reject option for low-confidence predictions in production settings.
-   - Why: high overall accuracy can mask overconfident errors — calibration improves decision quality for downstream systems.
-   - Expected outcome: better calibrated probabilities, safer deployment thresholds.
-
-5. Deployment benchmarks and inference optimization
-   - What: measure CPU and GPU inference latency and throughput; experiment with ONNX or quantized models for CPU deployment.
-   - Why: production constraints often require latency/throughput trade-offs; quantization can reduce memory and latency substantially.
-   - Expected outcome: a set of recommended deployment recipes (CPU quantized model for low-latency, GPU batch serving for high-throughput).
-
-6. Expand to noisy domains and transfer learning
-   - What: evaluate the same pipeline on social-media-style text or OCR-cleaned text to quantify when context matters the most.
-   - Why: DBpedia is relatively clean; transfer to noisier domains will stress context and reveal real-world gains.
-   - Expected outcome: clear mapping of dataset noise → transformer advantage.
-
----
-drive.mount('/content/drive')
-
 # Does Context Actually Matter for Text Classification?
 
 
@@ -97,10 +23,14 @@ https://www.youtube.com/watch?v=tJMxr0M0WzE
 
 ---
 
-3) Data — what, where, and preprocessing summary
+3) Data
 
 - Dataset: DBpedia 14 (HuggingFace id: `dbpedia_14`), ~560k train / ~70k test. A Drive mirror is available if you prefer a local copy:
    - Drive mirror: `https://drive.google.com/uc?export=download&id=0Bz8a_Dbh9QhbQ2Vic1kxMmZZQ1k`
+
+Dataset summary (short):
+
+DBpedia 14 is a standard 14-class benchmark of Wikipedia article titles and short abstracts (used widely for multi-class text classification). The dataset contains ~560k training examples and ~70k test examples, with each row providing a label, title, and abstract.
 
 Preprocessing (high level — fully implemented in `main_notebook.ipynb`):
 
@@ -196,32 +126,77 @@ Next-Gen-NLP-Classifier-Using-Transformer-Models/
 
 ---
 
-7) Results — short headline
+## Results & Conclusion — detailed takeaways
 
-Headline: TF‑IDF is an excellent, low-cost baseline on DBpedia (≈98.4%); DistilBERT is more sample-efficient (8K fine-tune matches or slightly outperforms TF‑IDF) and reaches a marginally higher ceiling when fine-tuned on the full dataset (~99.6%) at a much higher compute cost. See `main_notebook.ipynb` for full tables, confusion matrices, and per-class analysis.
+This section gives a concise, reproducible summary of the numeric results, important qualitative observations, and practical guidance for choosing a model for similar classification tasks.
 
-Visual highlights (if images extracted to `assets/`):
+Headline numbers (test set):
 
-- `assets/060-detailed-performance-breakdown-by-class.png` — per-class metrics
-- `assets/090-phase-8-cross-model-comparison.png` — cross-model comparison
+- TF‑IDF + Logistic Regression (RQ1): ~98.40% accuracy and comparable Macro F1. Training and evaluation are very fast (minutes on CPU) and require negligible GPU resources.
+- TF‑IDF + TruncatedSVD (RQ2): ~96.5% accuracy — dimensionality reduction reduced signal from rare but discriminative tokens and increased confusion between related classes.
+- DistilBERT (RQ3): fine-tuning on a stratified ~8K subset yields ~98.89% accuracy (strong sample-efficiency). Fine-tuning on the full training set produces a higher ceiling (~99.6%) but requires substantially more GPU time (order-of-magnitude slower; in our runs the full-data run took ~55× more wall-clock GPU time than the 8K run).
+
+Per-class observations and failure modes:
+
+- Several small classes (few-shot labels) show degraded recall in the TF‑IDF pipelines because they rely on rare tokens that get lost when using SVD or aggressive token pruning.
+- DistilBERT improves per-class recall for classes with subtle contextual cues — it captures phrase-level patterns that TF‑IDF misses.
+- The confusion matrices (see assets) show the most common confusions are semantically close classes (e.g., different types of companies or locations); these are good candidates for label-merging or hierarchical classification in future work.
+
+Compute, time, and resource notes (reproducibility-friendly):
+
+- Environment: experiments were run in Google Colab with a T4 GPU for transformer fine-tuning. The notebook records the Python and package versions; export `requirements.txt` from Colab to reproduce exact runtime.
+- DistilBERT hyperparameters used for reported runs (notebook cells): seed=42, max_length=128, batch_size=16 (8 for GPU memory-limited runs), lr=2e-5, epochs=3 for 8K and epochs=2–3 for larger runs depending on learning curves.
+- Checkpoints and model artifacts were saved to an output directory (the notebook uses a `checkpoints/` folder). Avoid committing large checkpoints to GitHub — use Drive or S3 for storage and link them in `data/README.md`.
+
+Practical recommendations (actionable):
+
+- Quick evaluation / baseline: Run TF‑IDF + Logistic Regression first (minutes) to establish a reliable lower bound.
+- If you have GPU and <50k labels: fine-tune DistilBERT on a stratified 8K subset to measure sample-efficiency gains before committing to a full fine-tune.
+- If the final accuracy gain is small (<0.5 percentage point) but cost is high, prefer TF‑IDF for production (faster, cheaper, interpretable).
+- Use per-class error analysis (confusion matrices and LIME explanations in the notebook) to decide if label consolidation or targeted data collection is more effective than wholesale model replacement.
+
+Visual highlights (extracted from the notebook):
+
+- Performance breakdown (per-class): `assets/060-detailed-performance-breakdown-by-class.png`
+
+![Per-class performance](assets/060-detailed-performance-breakdown-by-class.png)
+
+- Cross-model comparison (accuracy vs F1): `assets/090-phase-8-cross-model-comparison.png`
+![Model comparison](assets/090-phase-8-cross-model-comparison.png)
+## Future work — concrete experiments and next steps
+
+Below are concrete, high-impact directions with short descriptions and expected outcomes. Each item includes what to run and what you should expect to learn.
+
+1. k-fold cross-validation on the 8K DistilBERT experiments
+   - What: run 5-fold (or 3× repeated stratified splits) on the 8K subset to estimate variance and produce confidence intervals for accuracy and Macro F1.
+   - Why: single-split results can overstate performance; k-fold reveals stability and helps decide whether the observed gain is robust.
+   - Expected outcome: estimate ±CI around the 98.8% point estimate; identify high-variance classes.
+
+2. Parameter-efficient fine-tuning (LoRA / adapters)
+   - What: replace full-parameter fine-tuning with LoRA or adapter layers and repeat the 8K and full-data experiments.
+   - Why: reduces GPU memory and compute, enabling near full-data performance at a fraction of the cost.
+   - Expected outcome: similar accuracy with <10% of the GPU computation/time.
+
+3. Targeted data augmentation for low-recall classes
+   - What: use back-translation, paraphrasing, or class-specific synonym insertion for classes with low recall in TF‑IDF runs.
+   - Why: improves recall for rare classes without needing large-scale labeling.
+   - Expected outcome: improved per-class recall for rare labels with minimal effect on common classes.
+
+4. Calibration and confidence-based rejection
+   - What: evaluate model calibration (temperature scaling) and implement a reject option for low-confidence predictions in production settings.
+   - Why: high overall accuracy can mask overconfident errors — calibration improves decision quality for downstream systems.
+   - Expected outcome: better calibrated probabilities, safer deployment thresholds.
+
+5. Deployment benchmarks and inference optimization
+   - What: measure CPU and GPU inference latency and throughput; experiment with ONNX or quantized models for CPU deployment.
+   - Why: production constraints often require latency/throughput trade-offs; quantization can reduce memory and latency substantially.
+   - Expected outcome: a set of recommended deployment recipes (CPU quantized model for low-latency, GPU batch serving for high-throughput).
+
+6. Expand to noisy domains and transfer learning
+   - What: evaluate the same pipeline on social-media-style text or OCR-cleaned text to quantify when context matters the most.
+   - Why: DBpedia is relatively clean; transfer to noisier domains will stress context and reveal real-world gains.
+   - Expected outcome: clear mapping of dataset noise → transformer advantage.
 
 ---
+drive.mount('/content/drive')
 
-8) Future work (short bullets)
-
-- k-fold cross-validation on the 8K experiments to estimate variance.
-- Parameter-efficient fine-tuning (LoRA / adapters) to reduce GPU/time cost.
-- Evaluate on noisier domains (social media, OCR) to measure real-world benefits of context.
-- Add latency/throughput benchmarks for deployment scenarios (CPU/GPU).
-- Provide a Dockerfile or conda YAML for fully local reproducibility.
-
----
-
-9) Assets & notes
-
-- Use `scripts/extract_images_from_notebook.py` to populate `assets/` with figures used in the notebook. `assets/README.md` contains captions and file mappings.
-- Do not commit raw dataset CSVs or heavy model checkpoints; instead include download instructions in `data/README.md` or use Git LFS / external hosting.
-
----
-
-**End of README**

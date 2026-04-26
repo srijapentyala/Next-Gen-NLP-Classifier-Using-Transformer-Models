@@ -36,7 +36,7 @@ https://www.youtube.com/watch?v=tJMxr0M0WzE
 - DBpedia 14 is a standard 14-class benchmark of Wikipedia article titles and short abstracts (used widely for multi-class text classification). The dataset contains ~560k training examples and ~70k test examples, with each row providing a label, title, and abstract.
 
 - A Drive mirror is available if you prefer a local copy:
-   - Drive mirror (direct download): [Google Drive mirror](https://drive.google.com/uc?export=download&id=0Bz8a_Dbh9QhbQ2Vic1kxMmZZQ1k)
+   - Drive mirror (direct download): [Dataset](https://drive.google.com/uc?export=download&id=0Bz8a_Dbh9QhbQ2Vic1kxMmZZQ1k)
 
 
 

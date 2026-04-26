@@ -1,42 +1,98 @@
 Data placement and usage
 
-This folder is a placeholder for local data files you may wish to provide instead of downloading from HuggingFace inside the notebook.
+This directory documents how to provide DBpedia CSVs locally so `main_notebook.ipynb` can load them without re-downloading from the internet.
 
-Recommended layout:
+Recommended local layout
 
-- `dbpedia_csv/train.csv`  (OPTIONAL: large — do not commit to GitHub)
-- `dbpedia_csv/test.csv`   (OPTIONAL)
-- `dbpedia_csv/classes.txt` (small)
+- `dbpedia_csv/train.csv`   # training CSV (large — do NOT commit)
+- `dbpedia_csv/test.csv`    # test CSV (large — do NOT commit)
+- `dbpedia_csv/classes.txt` # optional: one label per line
 
-Notes:
-- The notebook (`main_notebook.ipynb`) will automatically download DBpedia via the HuggingFace `datasets` library unless local CSVs are detected under `dbpedia_csv/`.
-- Do NOT commit large files to the repository. If you must include large artifacts, use Git LFS or an external storage link and add instructions here.
+The notebook will look for files under `dbpedia_csv/` first. If not found, it falls back to the HuggingFace `datasets` loader.
 
-Direct dataset mirror (provided by the user):
+Option A — Download provided Google Drive mirror (recommended if you want a direct local copy)
 
-- Google Drive mirror (download URL):
-  https://drive.google.com/uc?export=download&id=0Bz8a_Dbh9QhbQ2Vic1kxMmZZQ1k
+1. Install `gdown` (if not already installed):
 
-How to use the mirror locally:
+```bash
+pip install gdown
+```
 
-1. Download the file to your local machine. If the file is a zip or tar archive, unzip it and place CSVs under `dbpedia_csv/`.
+2. Download the mirror to the repo root and unpack if needed (macOS/Linux):
 
-2. Suggested commands (macOS / Linux):
+```bash
+cd /path/to/Next-Gen-NLP-Classifier-Using-Transformer-Models
+mkdir -p dbpedia_csv
+# using the provided share ID
+gdown --id 0Bz8a_Dbh9QhbQ2Vic1kxMmZZQ1k -O dbpedia_csv/dbpedia_mirror.zip
+unzip dbpedia_csv/dbpedia_mirror.zip -d dbpedia_csv/
+# or if the link points directly to CSVs, move them into dbpedia_csv/
+```
+
+Notes: Google Drive links can be rate-limited; if you get permission/quota errors, download manually via a browser and then move files into `dbpedia_csv/`.
+
+Option B — Programmatic download using HuggingFace `datasets` (no manual download required)
+
+This is the easiest option inside Colab or a Python environment:
+
+```python
+from datasets import load_dataset
+ds = load_dataset('dbpedia_14')
+# ds['train'].to_csv('dbpedia_csv/train.csv', index=False)
+# ds['test'].to_csv('dbpedia_csv/test.csv', index=False)
+import os
+os.makedirs('dbpedia_csv', exist_ok=True)
+ds['train'].to_csv('dbpedia_csv/train.csv', index=False)
+ds['test'].to_csv('dbpedia_csv/test.csv', index=False)
+```
+
+Option C — Manual download
+
+1. Download via browser from the Drive mirror URL.
+2. Move the extracted CSVs to `dbpedia_csv/`:
 
 ```bash
 mkdir -p dbpedia_csv
-cd dbpedia_csv
-# replace <FILE> below with the downloaded filename
-mv ~/Downloads/your_downloaded_file.zip ./
-unzip your_downloaded_file.zip
-# or if it's a CSV already:
-# mv ~/Downloads/train.csv ./
+mv ~/Downloads/train.csv dbpedia_csv/
+mv ~/Downloads/test.csv dbpedia_csv/
 ```
 
-3. After placing files under `dbpedia_csv/`, open `main_notebook.ipynb` and the notebook will detect the local files and use them instead of downloading.
+Quick verification steps (after files are in `dbpedia_csv/`)
 
-If you'd prefer to keep large files outside the repo (recommended), upload them to a cloud storage bucket (Drive/Dropbox/S3) and add the download link(s) here for reviewers.
+```bash
+# show file sizes and head of CSVs
+ls -lh dbpedia_csv
+head -n 5 dbpedia_csv/train.csv
+wc -l dbpedia_csv/train.csv dbpedia_csv/test.csv
+```
 
-Example Drive link (already included above):
-- https://drive.google.com/uc?export=download&id=0Bz8a_Dbh9QhbQ2Vic1kxMmZZQ1k
+Python checks you can run in Colab/notebook
+
+```python
+import pandas as pd
+df = pd.read_csv('dbpedia_csv/train.csv')
+print('rows,cols:', df.shape)
+print(df.columns)
+print(df.head(3).to_dict(orient='records'))
+```
+
+Important notes
+
+- DO NOT commit large CSV files or model checkpoints to the Git repository — they will exceed GitHub limits. Use Git LFS or external hosting (Drive, S3) and add links here instead.
+- If you host files externally, include direct download commands (gdown / curl) and a short checksum (md5/sha256) so reviewers can verify integrity.
+- If you prefer we can add a small helper script (`scripts/download_data.sh`) to download and unpack the mirror; tell me and I will create it.
+
+Questions or issues
+
+If a download fails in Colab because of rate limits or network issues, prefer the HuggingFace programmatic route (Option B) — it's robust and fast inside Colab.
+
+---
+
+Direct dataset mirror (provided by the user):
+
+https://drive.google.com/uc?export=download&id=0Bz8a_Dbh9QhbQ2Vic1kxMmZZQ1k
+
+---
+
+End of data/README.md
 

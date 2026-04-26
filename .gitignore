@@ -1,0 +1,68 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# macOS
+.DS_Store
+
+# VS Code
+.vscode/
+
+# PyCharm
+.idea/
+
+# Data and large artifacts (do NOT commit large datasets or model files)
+dbpedia_csv/train.csv
+dbpedia_csv/model/
+dbpedia_csv/*.safetensors
+dbpedia_csv/*.pt
+dbpedia_csv/*.bin
+
+# Hugging Face cache
+~/.cache/huggingface
+
+# Check for common large files
+*.h5
+*.ckpt
+*.tar.gz
+*.zip
+*.tgz
+*.pth
+*.pt
+*.safetensors
+
+# Logs
+logs/
+*.log
+
+# OS files
+Thumbs.db
+
+# Notebook output if you keep it
+*.nbconvert.ipynb
+
+# secrets
+.env
+
+# Docker
+docker-compose.override.yml
+
+# pytest
+.pytest_cache/
+
+# build
+build/
+dist/
+
+# allow assets and small metadata
+!assets/.gitkeep
+!data/.gitkeep

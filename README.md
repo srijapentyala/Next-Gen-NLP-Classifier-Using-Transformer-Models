@@ -9,7 +9,7 @@ https://www.youtube.com/watch?v=tJMxr0M0WzE
 
 ---
 
-1) Deliverable (exact file to open)
+1) Deliverable
 
 👉 The main deliverable is [main_notebook.ipynb](./main_notebook.ipynb) — open that file first and run top → bottom in Google Colab (GPU recommended for RQ3). Checkpoints live in `checkpoints/`.
 
@@ -18,8 +18,16 @@ https://www.youtube.com/watch?v=tJMxr0M0WzE
 2) Research questions
 
 - RQ1 — How well does TF‑IDF + Logistic Regression perform on DBpedia 14?
+
+   This question establishes a fast, interpretable baseline using bag-of-words features and a linear classifier; it measures how much signal exists without context.  The baseline guides whether a costly transformer fine-tune is justified in practice.
+
 - RQ2 — Does compressing TF‑IDF features with TruncatedSVD help or hurt predictive performance?
+
+   This probes whether dimensionality reduction can retain discriminative signal while speeding models and reducing memory.  A negative result shows that rare but informative tokens matter and that aggressive compression risks harming accuracy.
+
 - RQ3 — Does a contextual model (DistilBERT) outperform TF‑IDF, and how many labeled examples are needed to match or exceed the baseline (8K vs full)?
+
+   This measures the value of context: sample-efficiency (can a small fine-tune beat TF‑IDF) and ceiling performance (full-data fine-tune).  The result informs trade-offs between annotation cost, compute, and final accuracy.
 
 ---
 

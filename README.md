@@ -176,7 +176,7 @@ Summary comparison (table):
 
 - Performance breakdown (per-class): `assets/060-detailed-performance-breakdown-by-class.png`
 
-![Per-class performance](assets/060-detailed-performance-breakdown-by-class.png)
+![Per-class performance](assets/detailed-performance-breakdown-by-class.png)
 
 - Cross-model comparison (accuracy vs F1): `assets/090-phase-8-cross-model-comparison.png`
 ![Model comparison](assets/090-phase-8-cross-model-comparison.png)

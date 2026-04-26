@@ -163,40 +163,16 @@ Visual highlights (extracted from the notebook):
 
 - Cross-model comparison (accuracy vs F1): `assets/090-phase-8-cross-model-comparison.png`
 ![Model comparison](assets/090-phase-8-cross-model-comparison.png)
-## Future work — concrete experiments and next steps
 
-Below are concrete, high-impact directions with short descriptions and expected outcomes. Each item includes what to run and what you should expect to learn.
+## Future work — short actionable directions
 
-1. k-fold cross-validation on the 8K DistilBERT experiments
-   - What: run 5-fold (or 3× repeated stratified splits) on the 8K subset to estimate variance and produce confidence intervals for accuracy and Macro F1.
-   - Why: single-split results can overstate performance; k-fold reveals stability and helps decide whether the observed gain is robust.
-   - Expected outcome: estimate ±CI around the 98.8% point estimate; identify high-variance classes.
+1. k-fold cross-validation on the 8K DistilBERT experiments — run 5‑fold stratified CV to report mean ± CI and surface high‑variance classes.
 
-2. Parameter-efficient fine-tuning (LoRA / adapters)
-   - What: replace full-parameter fine-tuning with LoRA or adapter layers and repeat the 8K and full-data experiments.
-   - Why: reduces GPU memory and compute, enabling near full-data performance at a fraction of the cost.
-   - Expected outcome: similar accuracy with <10% of the GPU computation/time.
+2. Parameter‑efficient fine‑tuning (LoRA / adapters) — evaluate LoRA/adapters to reduce GPU/time at near-equivalent accuracy.
 
-3. Targeted data augmentation for low-recall classes
-   - What: use back-translation, paraphrasing, or class-specific synonym insertion for classes with low recall in TF‑IDF runs.
-   - Why: improves recall for rare classes without needing large-scale labeling.
-   - Expected outcome: improved per-class recall for rare labels with minimal effect on common classes.
+3. Targeted augmentation for low‑recall classes — use back‑translation/paraphrasing or synonym injection to boost recall for rare labels.
 
-4. Calibration and confidence-based rejection
-   - What: evaluate model calibration (temperature scaling) and implement a reject option for low-confidence predictions in production settings.
-   - Why: high overall accuracy can mask overconfident errors — calibration improves decision quality for downstream systems.
-   - Expected outcome: better calibrated probabilities, safer deployment thresholds.
-
-5. Deployment benchmarks and inference optimization
-   - What: measure CPU and GPU inference latency and throughput; experiment with ONNX or quantized models for CPU deployment.
-   - Why: production constraints often require latency/throughput trade-offs; quantization can reduce memory and latency substantially.
-   - Expected outcome: a set of recommended deployment recipes (CPU quantized model for low-latency, GPU batch serving for high-throughput).
-
-6. Expand to noisy domains and transfer learning
-   - What: evaluate the same pipeline on social-media-style text or OCR-cleaned text to quantify when context matters the most.
-   - Why: DBpedia is relatively clean; transfer to noisier domains will stress context and reveal real-world gains.
-   - Expected outcome: clear mapping of dataset noise → transformer advantage.
+4. Calibration & confidence‑based rejection — calibrate probabilities and add a reject option to reduce high‑impact overconfident errors in deployment.
 
 ---
-drive.mount('/content/drive')
 

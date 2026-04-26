@@ -119,16 +119,18 @@ Full dependency freeze should be exported from Colab to `requirements.txt` and c
 
 ```
 Next-Gen-NLP-Classifier-Using-Transformer-Models/
-├── main_notebook.ipynb            # Curated final notebook (start here)
-├── requirements.txt               # Exported from Colab (session-specific freeze recommended)
-├── README.md                      # This file (rubric-compliant)
+├── assets/                        # Extracted figures from the notebook
 ├── checkpoints/                   # Checkpoint notebooks
 │   ├── checkpoint_1.ipynb
 │   └── checkpoint_2.ipynb
-├── scripts/                       # Data helpers & image extraction tools
 ├── data/                          # Placeholder + download instructions (do not commit large files)
-├── assets/                        # Extracted figures from the notebook
-├── .gitignore         # Local commit/push instructions
+├── dbpedia_csv/                   # (local) raw CSVs and model output — ignored by .gitignore
+├── scripts/                       # Data helpers & image extraction tools
+├── .gitignore
+├── authenticate.sh                # helper for Git/GitHub auth (optional)
+├── main_notebook.ipynb            # Curated final notebook (start here)
+├── README.md                      # This file (rubric-compliant)
+└── requirements.txt               # Exported from Colab (session-specific freeze recommended)
 ```
 
 ---

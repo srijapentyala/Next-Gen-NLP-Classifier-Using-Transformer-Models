@@ -165,6 +165,15 @@ Practical recommendations (actionable):
 
 Visual highlights (extracted from the notebook):
 
+Summary comparison (table):
+
+| Model | Val/Test Accuracy | Val/Test Macro F1 | Training Samples | Key Finding |
+|---|---:|---:|---:|---|
+| Stage 1: TF‑IDF + LR | 98.40% | 98.4% | ~448,000 | Strong, fast — but context‑blind |
+| Stage 2: TF‑IDF + SVD | 96.5% | 96.5% | ~448,000 | Compression makes things worse |
+| Stage 3: DistilBERT (8K) | 98.89% | 98.88% | ~8,000 | Exceeds Stage 1 with 56× less data |
+| Stage 3: DistilBERT (Full 448K) | 99.65% | 99.65% | 448,000 | Transfer learning ceiling at scale |
+
 - Performance breakdown (per-class): `assets/060-detailed-performance-breakdown-by-class.png`
 
 ![Per-class performance](assets/060-detailed-performance-breakdown-by-class.png)

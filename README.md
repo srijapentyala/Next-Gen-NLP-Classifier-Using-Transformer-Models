@@ -169,24 +169,21 @@ The complete list of every package and version from the Colab session lives in [
 
 ```
 Next-Gen-NLP-Classifier-Using-Transformer-Models/
-│
-└── assets/
-    ├── detailed-performance-breakdown-by-class.png
-    └── 090-phase-8-cross-model-comparison.png
-         ....
-├── checkpoints/
-│   ├── checkpoint_1.ipynb       # Checkpoint 1: Dataset selection & initial EDA
-│   └── checkpoint_2.ipynb       # Checkpoint 2: Research questions & experimental design
-│
-├── data/
-│   README.md(instructions to download and work with data)
-│
-├── scripts/
-│  ├── extract_images_from_notebook.py      # To extract all images from notebook
-│  ├──rename_assets_by_notebook_context.py  #Rename assets figure names
-├── main_notebook.ipynb
-├── requirements.txt  
-
+├── assets/                        # Extracted figures from the notebook
+├── checkpoints/                   # Checkpoint notebooks
+│   ├── checkpoint_1.ipynb
+│   └── checkpoint_2.ipynb
+├── data/                          # Placeholder + download instructions
+├── dbpedia_csv/                   # local CSVs (ignored by .gitignore)
+├── scripts/                       # helper scripts (see brief descriptions below)
+│   ├── README.md                  # scripts usage notes
+│   ├── clean_notebooks.py         # remove 'widgets' entries from notebook metadata (new)
+│   ├── extract_images_from_notebook.py  # extract images/attachments from .ipynb into assets/
+│   └── rename_assets_by_notebook_context.py  # rename extracted images using nearby markdown headings
+├── .gitignore
+├── main_notebook.ipynb            # Curated final notebook (start here)
+├── README.md                      # This file
+└── requirements.txt               # Session-specific freeze recommended
 ```
 
 ---

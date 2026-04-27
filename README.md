@@ -40,7 +40,7 @@ This project is organized around three research questions, each answered by a de
 ## 📂 Dataset
 
 **Name:** DBpedia 14-Class Ontology Classification Dataset  
-**Source:** [HuggingFace `dbpedia_14`](https://drive.google.com/uc?export=download&id=0Bz8a_Dbh9QhbQ2Vic1kxMmZZQ1k)  
+**Source:** [`dbpedia_14`](https://drive.google.com/uc?export=download&id=0Bz8a_Dbh9QhbQ2Vic1kxMmZZQ1k)  
 **Original paper:** Auer et al., 2007 — *DBpedia: A Nucleus for a Web of Open Data*
 
 ### Structure
